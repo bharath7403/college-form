@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login & Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial;
+      background: #f3f3f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 { text-align: center; }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button { font-weight: bold; }
+    #loginBtn { background-color: green; color: white; }
+    #signupBtn { background-color: blue; color: white; }
+    .switch { text-align: center; margin-top: 10px; cursor: pointer; color: #007bff; }
+    .error { color: red; text-align: center; }
+    .success { color: green; text-align: center; }
+    #emailField { display: none; }
+
+    /* Responsive */
+    @media screen and (max-width: 400px) {
+      .container {
+        width: 90%;
+        padding: 20px;
+      }
+
+      input, button {
+        padding: 12px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="formTitle">Login</h2>
+    <input type="email" id="email" placeholder="Email" style="display:none;">
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn" onclick="login()">Login</button>
+    <button id="signupBtn" onclick="signup()" style="display:none;">Sign Up</button>
+    <div class="switch" onclick="toggleForm()">Switch to <span id="toggleText">Sign Up</span></div>
+    <div id="message" class="error"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxgpk4w2DL6aGy2F4s_8_87hf_T2kWaXteJfRuM4k80Ldn2mR3yEnbXcIoc1-brjDqd/exec';
+    let isLogin = true;
+
+    function toggleForm() {
+      isLogin = !isLogin;
+      document.getElementById("formTitle").innerText = isLogin ? "Login" : "Sign Up";
+      document.getElementById("loginBtn").style.display = isLogin ? "block" : "none";
+      document.getElementById("signupBtn").style.display = isLogin ? "none" : "block";
+      document.getElementById("email").style.display = isLogin ? "none" : "block";
+      document.getElementById("toggleText").innerText = isLogin ? "Sign Up" : "Login";
+      document.getElementById("message").innerText = "";
+    }
+
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("message");
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({
+          type: 'login',
+          username,
+          password
+        })
+      })
+      .then(res => res.text())
+      .then(result => {
+        if (result === "Success") {
+          window.location.href = "register.html";
+        } else {
+          msg.innerText = "Invalid credentials";
+          msg.className = "error";
+        }
+      })
+      .catch(err => {
+        msg.innerText = "Error: " + err;
+        msg.className = "error";
+      });
+    }
+
+    function signup() {
+      const email = document.getElementById("email").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("message");
+
+      if (!email || !username || !password) {
+        msg.innerText = "Please fill in all fields.";
+        msg.className = "error";
+        return;
+      }
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({
+          type: 'signup',
+          email,
+          username,
+          password
+        })
+      })
+      .then(res => res.text())
+      .then(result => {
+        if (result === "SignedUp") {
+          msg.innerText = "User registered successfully! You can now log in.";
+          msg.className = "success";
+          toggleForm();
+        } else {
+          msg.innerText = result;
+          msg.className = "error";
+        }
+      })
+      .catch(err => {
+        msg.innerText = "Error: " + err;
+        msg.className = "error";
+      });
+    }
+  </script>
+</body>
+</html>
