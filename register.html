@@ -4,22 +4,16 @@
   <title>College Registration</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f3f3f3;
-      margin: 0;
-    }
-
+    body { font-family: Arial; padding: 20px; background: #f3f3f3; }
     .form-container {
       background: white;
       padding: 30px;
       border-radius: 10px;
+      max-width: 100%;
       width: 400px;
       margin: auto;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     input, button {
       width: 100%;
       padding: 10px;
@@ -27,49 +21,31 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
     button {
       background-color: blue;
       color: white;
       font-weight: bold;
     }
-
     table {
       width: 100%;
       margin-top: 30px;
       border-collapse: collapse;
       background: white;
+      overflow-x: auto;
+      display: block;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: left;
+      white-space: nowrap;
     }
-
     th {
       background-color: #f0f0f0;
     }
-
-    /* Responsive */
-    @media screen and (max-width: 450px) {
+    @media screen and (max-width: 600px) {
       .form-container {
         width: 95%;
-        padding: 20px;
-      }
-
-      input, button {
-        font-size: 16px;
-      }
-
-      table, th, td {
-        font-size: 14px;
-      }
-    }
-
-    @media screen and (max-width: 768px) {
-      .form-container {
-        width: 90%;
       }
     }
   </style>
@@ -105,15 +81,15 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxQKKoEWkjSwIhf4tu6H1V8JbTaQqSNXJoRxQpPEEQ13OHPqM6FhTF8A-Jg5ITGNshGww/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxe1P9v8G8BSB31wasoQ-Fhgo0XdYQrOdeaDO9x8ScEDU_saPMIyk5D4tzP8DXSiU3sxA/exec"; // Replace with your script URL
 
     function submitForm() {
-      const name = document.getElementById("name").value;
-      const college = document.getElementById("college").value;
-      const roll = document.getElementById("roll").value;
-      const department = document.getElementById("department").value;
-      const email = document.getElementById("email").value;
-      const phone = document.getElementById("phone").value;
+      const name = document.getElementById("name").value.trim();
+      const college = document.getElementById("college").value.trim();
+      const roll = document.getElementById("roll").value.trim();
+      const department = document.getElementById("department").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
 
       const formData = new FormData();
       formData.append("type", "register");
@@ -128,16 +104,14 @@
         .then(res => res.text())
         .then(result => {
           if (result === "Registered") {
-            const table = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-            newRow.innerHTML = `<td>${name}</td><td>${college}</td><td>${roll}</td><td>${department}</td><td>${email}</td><td>${phone}</td>`;
-            
+            // Clear inputs
             document.getElementById("name").value = "";
             document.getElementById("college").value = "";
             document.getElementById("roll").value = "";
             document.getElementById("department").value = "";
             document.getElementById("email").value = "";
             document.getElementById("phone").value = "";
+            fetchSheetData(); // Refresh the table
           } else {
             alert("Error saving data");
           }
@@ -145,10 +119,33 @@
         .catch(err => alert("Error: " + err));
     }
 
+    function fetchSheetData() {
+      fetch(scriptURL, {
+        method: "POST",
+        body: new URLSearchParams({ type: "read" })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
+        tableBody.innerHTML = ""; // Clear old data
+
+        // Skip the header row in sheet
+        data.slice(1).forEach(row => {
+          const newRow = tableBody.insertRow();
+          newRow.innerHTML = row.map(cell => `<td>${cell}</td>`).join('');
+        });
+      })
+      .catch(err => console.error("Error fetching data:", err));
+    }
+
     document.getElementById("submitBtn").addEventListener("click", function(e) {
       e.preventDefault();
       submitForm();
     });
+
+    // Load data when page opens
+    window.addEventListener("DOMContentLoaded", fetchSheetData);
   </script>
+
 </body>
 </html>
